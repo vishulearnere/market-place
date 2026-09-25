@@ -66,7 +66,7 @@ export const updateVendor = async (
   next: NextFunction,
 ) => {
   try {
-    const { vendorID } = req.params
+    const  vendorID  = req.params.vendorID as string
     const { status } = req.body
 
     if (!status) {
@@ -94,7 +94,7 @@ export const disableVendor = async (
   next: NextFunction,
 ) => {
   try {
-    const { vendorID } = req.params
+    const  vendorID  = req.params.vendorID as string
 
     const userSvc = new UserService()
     const result = await userSvc.disableVendor(vendorID)
