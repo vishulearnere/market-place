@@ -1,0 +1,173 @@
+// This is your Prisma schema file.
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  // Prisma 7 uses the new rust-free client implementation
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ----------------------------------------------------------------------------
+// ENUMS
+// ----------------------------------------------------------------------------
+
+enum Role {
+  ADMIN
+  VENDOR
+  CUSTOMER
+}
+
+enum ShopStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  DISABLED
+}
+
+enum OrderStatus {
+  PLACED
+  PREPARING
+  COMPLETED
+  CANCELLED
+}
+
+// ----------------------------------------------------------------------------
+// MODELS
+// ----------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String
+  role         Role
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations (These don't create columns in the User table, they just tell Prisma how to join)
+  // Vendor-only relation: A vendor can own one shop
+  shop         Shop?
+
+  // Customer-only relations: A customer can have one active cart and many past orders
+  cart         Cart?
+  orders       Order[]
+
+  // Indexes to speed up queries
+  @@index([role]) 
+}
+
+model Shop {
+  id          String     @id @default(uuid()) @db.Uuid
+  
+  // Foreign Key to the User table
+  ownerId     String     @unique @db.Uuid
+  owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  name        String
+  latitude    Float
+  longitude   Float
+  status      ShopStatus @default(PENDING)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  products    Product[]
+  carts       Cart[]     // Multiple customers can have carts tied to this shop
+  orders      Order[]    // Orders placed at this shop
+
+  // Index to speed up geospatial or generic location sorting
+  @@index([latitude, longitude])
+}
+
+model Product {
+  id          String   @id @default(uuid()) @db.Uuid
+  
+  // Foreign Key to the Shop table
+  shopId      String   @db.Uuid
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  
+  title       String
+  imageUrl    String?
+  price       Decimal  @db.Decimal(10, 2)
+  isAvailable Boolean  @default(true)
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+
+  // Index to speed up fetching products for a specific shop
+  @@index([shopId])
+}
+
+model Cart {
+  id         String   @id @default(uuid()) @db.Uuid
+  
+  // Foreign Key to the Customer (User)
+  customerId String   @unique @db.Uuid
+  customer   User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  // Foreign Key to the Shop (Enforces "One Cart belongs to One Shop")
+  shopId     String   @db.Uuid
+  shop       Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  items      CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  
+  cartId    String   @db.Uuid
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  
+  productId String   @db.Uuid
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  quantity  Int      @default(1)
+
+  // A cart shouldn't have the same product twice. If they add it again, we just increase quantity.
+  @@unique([cartId, productId])
+}
+
+model Order {
+  id          String      @id @default(uuid()) @db.Uuid
+  
+  // Foreign Key to the Customer (User)
+  customerId  String      @db.Uuid
+  customer    User        @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  
+  // Foreign Key to the Shop
+  shopId      String      @db.Uuid
+  shop        Shop        @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  
+  totalAmount Decimal     @db.Decimal(10, 2)
+  status      OrderStatus @default(PLACED)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  
+  orderId     String   @db.Uuid
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId   String   @db.Uuid
+  product     Product  @relation(fields: [productId], references: [id])
+  
+  quantity    Int
+  priceAtTime Decimal  @db.Decimal(10, 2) // Snapshots the price when ordered
+}
