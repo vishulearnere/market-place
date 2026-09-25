@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { prisma } from '../lib/prisma.js'
 // Import types from your generated Prisma output
-import { Role, Prisma } from '../generated/prisma/client.js'
+import { Role, Prisma,ShopStatus } from '../generated/prisma/client.js'
 
 // Define the expected return type for our service methods
 export interface ServiceResponse<T = any> {
@@ -137,7 +137,7 @@ export class UserService {
           role: user.role,
           isActive: user.isActive,
           shopStatus: user.shop?.status,
-          shopID: user.shop?.shopID,
+          shopID: user.shop?.id,
         },
         this.jwtSecret,
         { expiresIn: '24h' },
@@ -227,7 +227,7 @@ export class UserService {
       const updatedVendor = await prisma.shop.update({
         where: { ownerId: vendorID },
         data: {
-          status, // This assumes you have a 'status' field in your Prisma schema
+          status: status as ShopStatus, // This assumes you have a 'status' field in your Prisma schema
         },
       })
 

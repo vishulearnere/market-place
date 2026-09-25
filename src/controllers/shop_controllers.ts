@@ -14,7 +14,7 @@ export const updateShopLocation = async (
   next: NextFunction,
 ) => {
   try {
-    const { shopID } = req.params
+    const  shopID = req.params.shopID as string
 
     // 1. Validate coordinates
     console.log('Request body for location update:', req.body) // Debugging line

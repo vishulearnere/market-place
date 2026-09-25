@@ -51,10 +51,10 @@ export const getProductsByShopID = async (
   next: NextFunction,
 ) => {
   try {
-    const { shopID } = req.params
+    const  shopId  = req.params.shopID as string
     const productSvc = new ProductService()
 
-    const result = await productSvc.getProductsByShop(shopID)
+    const result = await productSvc.getProductsByShop(shopId)
 
     return res.status(result.status).json({ ...result })
   } catch (error) {
@@ -69,7 +69,7 @@ export const updateProduct = async (
   next: NextFunction,
 ) => {
   try {
-    const { productID } = req.params
+    const productID  = req.params.productID as string
 
     const { error, value } = updateProductSchema.validate(req.body, {
       abortEarly: false,
@@ -102,8 +102,7 @@ export const deleteProduct = async (
   next: NextFunction,
 ) => {
   try {
-    const { productID } = req.params
-
+    const productID  = req.params.productID as string
     const productSvc = new ProductService()
     const result = await productSvc.deleteProduct(req.user!.userId, productID)
 
