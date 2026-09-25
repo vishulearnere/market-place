@@ -8,14 +8,7 @@ export interface ServiceResponse<T = any> {
 }
 
 export class ShopService {
-  /**
-   * Updates the shop's latitude and longitude.
-   * Verifies the vendor actually owns this shop.
-   */
-  /**
-   * Updates the shop's latitude and longitude.
-   * Verifies the vendor owns the shop AND the shop is not disabled.
-   */
+ 
   async updateLocation(
     vendorId: string,
     shopId: string,
@@ -78,9 +71,7 @@ export class ShopService {
     }
   }
 
-  /**
-   * Fetches approved shops within a specific radius (in kilometers)
-   */
+
   async getNearbyShops(
     targetLat: number,
     targetLng: number,

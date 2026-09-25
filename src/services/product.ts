@@ -8,9 +8,7 @@ export interface ServiceResponse<T = any> {
 }
 
 export class ProductService {
-  /**
-   * Helper to ensure the vendor actually owns the product they are trying to modify
-   */
+
   private async verifyProductOwnership(vendorId: string, productId: string) {
     const product = await prisma.product.findUnique({
       where: { id: productId },

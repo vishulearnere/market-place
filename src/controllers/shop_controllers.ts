@@ -2,18 +2,11 @@ import { Request, Response, NextFunction } from 'express'
 import Joi from 'joi'
 import { ShopService } from '../services/shops.js'
 
-// ----------------------------------------------------------------------------
-// VALIDATION SCHEMAS
-// ----------------------------------------------------------------------------
 
 const locationSchema = Joi.object({
   latitude: Joi.number().min(-90).max(90).required(),
   longitude: Joi.number().min(-180).max(180).required(),
 })
-
-// ----------------------------------------------------------------------------
-// CONTROLLERS
-// ----------------------------------------------------------------------------
 
 export const updateShopLocation = async (
   req: Request,
@@ -72,7 +65,6 @@ export const shopsByGeoLocation = async (
     }
 
     const shopSvc = new ShopService()
-    // Hardcoded to 2km as per your requirement
     const result = await shopSvc.getNearbyShops(latitude, longitude, searchRadius)
 
     return res.status(result.status).json({ ...result })

@@ -15,13 +15,10 @@ export interface ServiceResponse<T = any> {
 
 export class UserService {
   private readonly saltRounds = 12
-  // Fallback secret for dev; always use environment variables in production
   private readonly jwtSecret =
     process.env.JWT_SECRET || 'super-secret-development-key'
 
-  /**
-   * Handle User Registration (Admin, Vendor, Customer)
-   */
+ 
   async signup(data: any): Promise<ServiceResponse> {
     try {
       const email = data.email.toLowerCase().trim()
@@ -36,7 +33,7 @@ export class UserService {
             'Invalid role. Only CUSTOMER or VENDOR accounts can be registered via this endpoint.',
         }
       }
-      
+
       // 1. Check if user already exists
       const existingUser = await prisma.user.findUnique({
         where: { email },
@@ -134,8 +131,6 @@ export class UserService {
         }
       }
 
-      // 3. Generate JWT Token containing user ID and Role
-      // This token will be used in middleware to authorize Vendor/Admin actions
       const token = jwt.sign(
         {
           userId: user.id,
@@ -171,9 +166,7 @@ export class UserService {
     }
   }
 
-  /**
-   * Retrieve all Vendors
-   */
+ 
   async getAllVendors(queryParams?: any): Promise<ServiceResponse> {
     try {
       // You can expand this later to use queryParams for pagination (skip/take)
@@ -185,7 +178,6 @@ export class UserService {
           id: true,
           email: true,
           role: true,
-          // status: true, // Uncomment if you add a status field to your schema
           createdAt: true,
           shop: {
             select: {
@@ -213,9 +205,7 @@ export class UserService {
     }
   }
 
-  /**
-   * Update a Vendor's Status (e.g., Approve / Reject)
-   */
+
   async updateVendorStatus(
     vendorID: string,
     status: string,
@@ -257,9 +247,6 @@ export class UserService {
     }
   }
 
-  /**
-   * Disable a Vendor Account
-   */
   async disableVendor(vendorID: string): Promise<ServiceResponse> {
     try {
       // 1. Verify the vendor exists
