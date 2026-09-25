@@ -1,0 +1,315 @@
+openapi: 3.0.0
+info:
+  title: MarketPlace APIs
+  contact:
+    name: Vishal Shivhare
+    url: https://linktr.ee/curiousvishu
+    email: shivharevishal14@gmail.com
+  version: 1.0.0
+servers:
+  - url: https://radiant-chamber-77447-e7f353260bfa.herokuapp.com/
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+tags:
+  - name: Vendor Portal
+  - name: Customer Portal
+  - name: Admin Portal
+paths:
+  /v1/user/register:
+    post:
+      tags:
+        - Customer Portal
+        - Vendor Portal
+      summary: Register New user
+      description: Single endpoint for all user registrations. The account type is determined by the `role` field in the payload.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - role
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+                  enum: [CUSTOMER, VENDOR]
+            examples:
+              Vendor Example:
+                summary: Vendor Registration
+                value:
+                  email: vendor@store.com
+                  password: secret
+                  role: VENDOR
+              Customer Example:
+                summary: Customer Registration
+                value:
+                  email: customer@gmail.com
+                  password: secret
+                  role: CUSTOMER
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /v1/user/login:
+    post:
+      tags:
+        - Customer Portal
+        - Vendor Portal
+        - Admin Portal
+      summary: User Login
+      description: Login endpoint for all portal users.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+                  enum: [CUSTOMER, VENDOR, ADMIN]
+            examples:
+              VendorLogin:
+                summary: Vendor Login Example
+                value:
+                  email: samehdfwdsd@gmail.com
+                  password: secret
+              CustomerLogin:
+                summary: Customer Login Example
+                value:
+                  email: samehdfwd@gmail.com
+                  password: secret
+              AdminLogin:
+                summary: Admin Login Example
+                value:
+                  email: admin@gmail.com
+                  password: admin
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /v1/shop/{shopId}:
+    patch:
+      tags:
+        - Vendor Portal
+      summary: Set Shop Location
+      description: Update the latitude and longitude of a specific shop.
+      # This creates the input box for the Shop ID
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          description: The UUID of the shop.
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                latitude: '23.921700'
+                longitude: '81.017624'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /v1/product/create:
+    post:
+      tags:
+        - Vendor Portal
+      summary: Create Product
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                title: chair
+                imageUrl: https://chair.jpg
+                price: '8000'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /v1/product/{id}:
+    patch:
+      tags:
+        - Vendor Portal
+      summary: Update Product
+      description: Update product details. **Requires Product ID.**
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The UUID of the **Product** to update.
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                isAvailable: 'false'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+            
+    delete:
+      tags:
+        - Vendor Portal
+      summary: Delete Product
+      description: Remove a product. **Requires Product ID.**
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The UUID of the **Product** to delete.
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+            
+    get:
+      tags:
+        - Customer Portal
+      summary: Get Products of a Shop
+      description: Fetch all products for a specific shop. **Requires Shop ID.**
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Enter the **SHOP ID** here, not the Product ID.
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /v1/shop:
+    get:
+      tags:
+        - Customer Portal
+      summary: Get Nearby Shops
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: lat
+          in: query
+          schema:
+            type: number
+          example: '23.916317'
+        - name: lng
+          in: query
+          schema:
+            type: number
+          example: '81.008821'
+        - name: radius
+          in: query
+          schema:
+            type: integer
+          example: '50'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /v1/user/:
+    get:
+      tags:
+        - Admin Portal
+      summary: Get All Vendors
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /v1/user/status/{userId}:
+    patch:
+      tags:
+        - Admin Portal
+      summary: Approve/Reject Vendors
+      # This block creates the input box in Swagger UI
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The UUID of the vendor
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                status: APPROVED
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+
+  /v1/user/disable/{userId}:
+    patch:
+      tags:
+        - Admin Portal
+      summary: Disable Vendor
+      # This block creates the input box in Swagger UI
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The UUID of the vendor
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
