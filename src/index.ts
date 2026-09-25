@@ -30,13 +30,14 @@ app.get('/health', (req: Request, res: Response) => {
   })
 })
 
+const PORT = process.env.PORT || 9000
 async function startService() {
   try {
     await prisma.$connect()
     await prisma.$queryRawUnsafe('SELECT 1')
     console.log('Database connected successfully')
-    const server = app.listen(9000, () => {
-      console.log('All dependencies loaded. Node app running on port 9000')
+    const server = app.listen(PORT, () => {
+      console.log(`All dependencies loaded. Node app running on port ${PORT}`)
     })
   } catch (error) {
     console.error('Failed to start service:', error)
